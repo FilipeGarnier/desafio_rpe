@@ -60,3 +60,7 @@ Para todos os serviços devem ser feitos testes unitários, deploy com Docker Co
 - Docker Compose
 - Swagger
 
+## Documentação Técnica
+
+A documentação pode ser acessada pelo link: https://docs.google.com/document/d/1MyObJi3zY0sd2ih8AfEVmuFDprX3I9eNRgB-q4jbRNw
+
