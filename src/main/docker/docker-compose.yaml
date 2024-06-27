@@ -1,0 +1,83 @@
+services:
+  app:
+    image: 'docker-spring-boot-postgres:latest'
+    hostname: Desafio
+    build:
+      context: .
+    container_name: app
+    depends_on:
+      - postgres
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://desafio_postgres10_container:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_PROPERTIES_HIBERNATE_SHOW_SQL=true
+      - SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
+      - SPRING_CLOUD_AWS_CREDENTIALS_ACCESS-KEY=ANUJDEKAVADIYAEXAMPLE
+      - SPRING_CLOUD_AWS_CREDENTIALS_SECRET-KEY=2QvM4/Tdmf38SkcD/qalvXO4EXAMPLEKEY
+      - SPRING_CLOUD_AWS_SQS_ENDPOINT=http://localhost:4566
+      - SPRING_CLOUD_AWS_REGION_STATIC=us-east-1
+      - EVENTS_QUEUE=cartao-queue
+      - SECURITY_JWT_SECRET-KEY=e761121f99a06305aaed76c7f8314a82654c7f936222f2d6f25d40bcae02b78a
+      - SECURITY_JWT__EXPIRATION-TIME=3600000
+      - SPRING_REDIS_HOST=cache
+      - SPRING_REDIS_PORT=6379
+  localstack:
+    image: localstack/localstack
+    hostname: localstack
+    ports:
+      - "127.0.0.1:4566:4566"
+    environment:
+      - SKIP_SSL_CERT_DOWNLOAD=1
+      - SERVICES=sns,sqs
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=ANUJDEKAVADIYAEXAMPLE
+      - AWS_SECRET_ACCESS_KEY=2QvM4/Tdmf38SkcD/qalvXO4EXAMPLEKEY
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./scripts/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh"
+  pgadmin4:
+        image: dpage/pgadmin4
+        container_name: desafio_pgadmin4_container
+        environment: 
+            - PGADMIN_DEFAULT_EMAIL=garnier.filipe@gmail.com
+            - PGADMIN_DEFAULT_PASSWORD=12345
+        ports: 
+            - "89:80"
+        networks: 
+            - postgres-network     
+  postgres:
+        image: postgres:10
+        container_name: desafio_postgres10_container
+        environment: 
+            - POSTGRES_PASSWORD=postgres
+        ports: 
+            - "5432:5432"
+        networks: 
+            - postgres-network    
+        volumes: 
+            - /usr/filipegarnier/Documentos/Developer/postgres:/var/lib/postgresql/data 
+  redis:
+        image: "bitnami/redis"
+        environment:
+          - ALLOW_EMPTY_PASSWORD=yes
+        ports:
+          - "6379:6379"
+        networks:
+          - app-tier        
+  redis-sentinel:
+        image: "bitnami/redis-sentinel"
+        environment:
+          - REDIS_MASTER_HOST=localhost
+          - REDIS_SENTINEL_RESOLVE_HOSTNAMES=yes
+        ports:
+          - "26379:26379"
+        networks:
+          - app-tier      
+networks: 
+  postgres-network:
+    driver: bridge
+  app-tier:
+    driver: bridge
